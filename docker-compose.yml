@@ -1,0 +1,39 @@
+version: "3.8"
+
+networks:
+    internal:
+        external: false
+
+services:
+    mysql:
+        container_name: "drupal10-mysql"
+        environment:
+            MYSQL_DATABASE: default
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_USER: default
+        image: 'mysql:8.0.32'
+        networks:
+            - internal
+        ports:
+            - "3306:3306"
+        restart: "always"
+        volumes:
+            - ./docker/data/mysql:/var/lib/mysql
+            - ./docker/logs/mysql:/var/log/mysql
+    web:
+        build:
+            context: ./docker/bin/php
+        container_name: "drupal10-web"
+        depends_on:
+            - mysql
+        ports:
+            - '80:80'
+        networks:
+            - internal
+        restart: "always"
+        volumes:
+            - ./docker/config/php/php.ini:/usr/local/etc/php/php.ini
+            - ./docker/config/sites:/etc/apache2/sites-enabled
+            - ./docker/logs/httpd:/var/log/apache2
+            - .:/var/www/html
